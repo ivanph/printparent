@@ -7,26 +7,79 @@
 import React, { Component } from 'react';
 import {
   AppRegistry,
+  Animated,
   StyleSheet,
   Text,
-  View
+  View,
+  ScrollView,
+  FlatList
 } from 'react-native';
-import {PrintParent} from './components/parent';
-import Component1 from './components/Component1';
+const yOffset = new Animated.Value(0);
+const onScroll = Animated.event(
+  [{ nativeEvent: { contentOffset: { y: yOffset } } }],
+  { useNativeDriver: true }
+);
+const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
 export default class TestParent extends Component {
+  scrollTo = (e) => {
+    this.paramsList.scrollToOffset({animated: false, offset: e.nativeEvent.contentOffset.y})
+  }
+  viewTranslate() {
+    return {
+      transform: [{
+        translateY: yOffset.interpolate({
+          inputRange: [0,1],
+          outputRange: [1,0]
+        })
+      }]
+    };
+  }
   render () {
+    // Add a main scroll view that scrolls everything together
     return (
       <View style={styles.container}>
-        <Component1 />
-        <Text style={styles.instructions}>
-          To get started, edit index.android.js
-        </Text>
-        <Text style={styles.instructions}>
-          Double tap R on your keyboard to reload,{'\n'}
-          Shake or press menu button for dev menu
-        </Text>
-        <PrintParent />
+        <ScrollView
+          pagingEnabled
+          horizontal
+          style={{backgroundColor: 'purple', width: '40%', height: '40%'}}>
+          <AnimatedFlatList
+          style={this.viewTranslate()}
+            ref={(list) => { this.dateList = list; }}
+            data={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
+            renderItem={this.renderItem2}
+            scrollEventThrottle={16}
+            onScroll={onScroll}
+          />
+        </ScrollView>
+        <ScrollView
+          pagingEnabled
+          horizontal
+          style={{backgroundColor: 'green', width: '60%', height: '40%'}}>
+          <AnimatedFlatList
+            style={this.viewTranslate()}
+            ref={(list) => { this.paramsList = list; }}
+            data={[1, 2, 3, 4, 5, 6, 7, 8, 9 , 10]}
+            renderItem={this.renderItem}
+            scrollEventThrottle={16}
+            onScroll={onScroll}
+          />
+        </ScrollView>
+      </View>
+    );
+  }
+
+  renderItem (elem) {
+    return (
+      <View style={{width: '200%'}}>
+        <Text style={{fontSize: 60}}> {elem.index} SPO2 PR RRP FOO BAR </Text>
+      </View>
+    );
+  }
+  renderItem2 (elem) {
+    return (
+      <View style={{width: '200%'}}>
+        <Text style={{fontSize: 60}}> {elem.index} SPO2 </Text>
       </View>
     );
   }
@@ -35,9 +88,9 @@ export default class TestParent extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF'
+    flexDirection: 'row',
+    height: '40%',
+    backgroundColor: 'red'
   },
   instructions: {
     textAlign: 'center',
